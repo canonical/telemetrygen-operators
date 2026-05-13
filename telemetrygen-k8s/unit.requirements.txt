@@ -1,0 +1,5 @@
+# Override for unit test environment: pin to the available 0.5.x release.
+# The main requirements.txt has a broken >=1.0.0a1 pin (pre-release that does
+# not yet exist on PyPI).  This file is listed AFTER requirements.txt in the
+# tox unit env so pip resolves it last and the correct version wins.
+charmlibs-interfaces-otlp>=0.5,<0.6

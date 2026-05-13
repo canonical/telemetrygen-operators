@@ -1,0 +1,112 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: telemetrygen-k8s
+type: charm
+summary: Synthetic OTLP telemetry generator for exercising observability pipelines.
+description: |
+  Telemetrygen-k8s is a Juju charm that wraps the upstream OpenTelemetry
+  `telemetrygen` CLI (https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/telemetrygen).
+  It generates synthetic traces, metrics, or logs and ships them via the modern
+  unified `otlp` relation interface (implemented by `charmlibs.interfaces.otlp`)
+  to a related OTLP receiver — for example, opentelemetry-collector-k8s — so a
+  single relation carries traces, metrics, and logs over either gRPC (preferred)
+  or HTTP. It is intended for end-to-end pipeline testing and demonstrations
+  inside the Canonical Observability Stack (COS).
+
+  Key features:
+
+  - Generates synthetic traces, metrics, or logs via the OTLP protocol — no
+    legacy `prometheus_scrape`, `prometheus_remote_write`, or `loki_push_api`
+    relations required.
+  - Reconciler-driven: every observed event converges the workload toward the
+    configured desired state.
+  - Configurable rate, duration, worker count, and OTLP service name.
+  - Sidecar workload pattern, managed entirely through Pebble.
+  - Fan out to many OTLP receivers from a single unit: one Pebble service is
+    started per `(relation, signal)` pair.
+
+links:
+  documentation: https://charmhub.io/telemetrygen-k8s
+  website: https://charmhub.io/telemetrygen-k8s
+  source: https://github.com/canonical/telemetrygen-k8s-operator
+  issues: https://github.com/canonical/telemetrygen-k8s-operator/issues
+
+assumes:
+  - k8s-api
+  - juju >= 3.6
+
+platforms:
+  ubuntu@24.04:amd64:
+  ubuntu@24.04:arm64:
+
+parts:
+  charm:
+    source: .
+    plugin: charm
+    build-packages: [git]
+
+containers:
+  telemetrygen:
+    resource: telemetrygen-image
+
+resources:
+  telemetrygen-image:
+    type: oci-image
+    description: OCI image for the upstream OpenTelemetry telemetrygen CLI.
+    upstream-source: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.152.0
+
+requires:
+  send-otlp:
+    interface: otlp
+    optional: false
+    description: |
+      Send synthetic OTLP traces, metrics, or logs to one or more related
+      charms that provide the `otlp` interface (e.g. opentelemetry-collector-k8s).
+      Fan-out is supported: the charm starts one Pebble service per
+      `(relation, signal)` pair, and intersects the configured `signals` with
+      the telemetry types each provider advertises on its endpoint.
+
+config:
+  options:
+    signals:
+      type: string
+      default: traces
+      description: |
+        Comma-separated list of signals to generate concurrently. Each item
+        must be one of `traces`, `metrics`, `logs`. The charm runs one
+        Pebble service per requested signal, so any non-empty subset is
+        valid (e.g. `traces`, `traces,logs`, `traces,metrics,logs`).
+        Whitespace is tolerated. If the value is empty or contains an
+        unknown signal the charm goes into BlockedStatus.
+    rate:
+      type: float
+      default: 1.0
+      description: |
+        Approximate items (traces / metrics / logs) per second, per worker.
+        Applied identically to every enabled signal. Set to 0 to disable
+        throttling (telemetrygen will generate as fast as possible).
+    duration:
+      type: string
+      default: "inf"
+      description: |
+        How long telemetrygen should run before exiting. Accepts a Go
+        duration string (e.g. `30s`, `5m`, `1h`) or the literal `inf` for
+        unbounded generation. The charm defaults to indefinite generation
+        so that, once related, the workload keeps producing telemetry
+        until the charm is removed or reconfigured. Applies to every
+        enabled signal.
+    workers:
+      type: int
+      default: 1
+      description: |
+        Number of concurrent telemetrygen worker goroutines, applied to
+        every enabled signal.
+    service_name:
+      type: string
+      default: telemetrygen
+      description: |
+        Value of the `service.name` resource attribute attached to every
+        generated record. The signal name is appended as a suffix on a
+        per-service basis (e.g. `telemetrygen-traces`) so that multiple
+        signals from the same unit are distinguishable downstream.
