@@ -10,6 +10,4 @@ tree resolving dependencies between decisions one by one.
 If a question can be answered by exploring the codebase, explore
 the codebase instead.
 
-For each question, provide your recommended answer.
-
-Ask one question at a time, and wait for my answer before asking the next question.
+Ask one question at a time and for each question, provide your recommended answer.
