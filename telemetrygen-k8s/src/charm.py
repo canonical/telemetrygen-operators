@@ -441,6 +441,18 @@ class TelemetrygenCharm(ops.CharmBase):
             if name.startswith(SERVICE_PREFIX) and name in desired_services
         }
         if managed_current == desired_services:
+            # Plan definitions match, but services may have been stopped by a
+            # prior _teardown_services() call (invalid config, dropped relation,
+            # or provider signal mismatch).  If any desired service is not
+            # running, replan to converge the running state.
+            try:
+                for name in desired_services:
+                    if not self._container.get_service(name).is_running():
+                        logger.debug("service %s is stopped; replanning", name)
+                        self._container.replan()
+                        return
+            except (ops.pebble.ConnectionError, ops.ModelError):
+                return
             logger.debug("pebble plan unchanged; no replan needed")
             return
 
