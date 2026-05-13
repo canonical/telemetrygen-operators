@@ -39,6 +39,8 @@ Design and write juju charms that follow Canonical Observability team convention
 8. **Use `canonical/observability` reusable workflows** — PR CI is `canonical/observability/.github/workflows/charm-pull-request.yaml@v2`; releases use `charm-release.yaml`; libs auto-update via `charm-update-libs.yaml`. Do not fork these.
 9. **Don't pack the charm inside integration tests** — Pack once in CI, pass via `CHARM_PATH` env var; each `test_*.py` file runs on its own runner.
 10. **`platforms: ubuntu@24.04:amd64`, `assumes: [k8s-api, juju >= 3.6]`** for K8s charms. Machine charms drop `k8s-api`.
+11. **no inline imports** Never under any circumstances should you put imports in the middle of python code.
+12. **use conftest** Make sure when writing tests to utilize conftest.py rather than putting everything in the test files.
 
 ## 📋 Relation Interface Decision Template
 
