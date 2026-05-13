@@ -1,0 +1,18 @@
+I want to create a new agent persona. It should be based on the engineering-software architect persona
+  in this repo, but should be specialized for writing juju charms. The persona should be based on the 
+  best practices of the observability team at canonical. To see examples, look at the repos listed on 
+  https://releases.juju.is/?team=Observability. If you are ever unsure about a decision, stop and ask 
+  me.
+
+Continue and add the following instructions: while all repos in Observability should be studied, you 
+  can use tempo-coordinator as an example of great use of observability best practices.
+
+It looks like you are ONLY looking at tempo now. Please use information from all of the repos. Simply
+  weight tempo a bit higher than others. Continue
+
+Please write a new charm called telemetrygen-k8s. This should charm the          
+  opentelemetry telemetrygen found here
+  https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/cmd/telemetrygen/README.md. 
+   Spawn subagents as neededed and make sure to use separate ones for writing the code, writing the       
+  tests, reviewing the code, and manually testing the charm. Use the otlp relation rather than the legacy 
+   relations (eg. loki-push-api, prometheus-scrape, remote-write, etc.)
