@@ -25,6 +25,7 @@ from urllib.parse import urlparse
 
 import ops
 from charmlibs.interfaces.otlp import OtlpEndpoint, OtlpRequirer
+from charms.istio_beacon_k8s.v0.service_mesh import ServiceMeshConsumer
 from cosl.reconciler import observe_events, reconcilable_events_k8s
 
 logger = logging.getLogger(__name__)
@@ -245,7 +246,7 @@ class TelemetrygenCharm(ops.CharmBase):
             protocols=["grpc", "http"],
             telemetries=["traces", "metrics", "logs"],
         )
-
+        self._mesh = ServiceMeshConsumer(self)
         # Status reporting must be registered before the reconcile observer
         # so that `collect_unit_status` runs *after* reconcile within the
         # same Juju event, surfacing the freshest status to the user.
