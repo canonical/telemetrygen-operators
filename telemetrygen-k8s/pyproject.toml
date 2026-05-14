@@ -11,6 +11,8 @@ dependencies = [
     "pydantic>=2,<3",
     "cosl>=1.0",
     "charmlibs-interfaces-otlp>=0.5,<0.6",
+    "charmed-service-mesh-helpers>=0.2.0",
+    "lightkube-extensions",
 ]
 
 [project.optional-dependencies]
